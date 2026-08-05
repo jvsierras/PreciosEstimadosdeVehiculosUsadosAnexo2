@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo SHCP 2026 - 1,304 Vehículos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.2em; margin-bottom: 10px; }
+        .header p { font-size: 1.05em; opacity: 0.9; }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .stat-box { text-align: center; padding: 10px 20px; }
+        .stat-number { font-size: 1.8em; font-weight: bold; color: #667eea; }
+        .stat-label { color: #6c757d; font-size: 0.85em; margin-top: 5px; }
+        .upload-section {
+            padding: 30px;
+            text-align: center;
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+        }
+        .upload-box {
+            border: 3px dashed #667eea;
+            padding: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        .upload-box:hover { background: #f0f4ff; border-color: #764ba2; }
+        .upload-box.dragover { background: #e7f3ff; border-color: #007bff; }
+        .upload-box h3 { color: #667eea; margin-bottom: 10px; }
+        .upload-box p { color: #6c757d; margin-bottom: 15px; }
+        input[type="file"] { display: none; }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-warning:hover { background: #e0a800; }
+        .filters {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+        }
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+        }
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .results-info {
+            padding: 15px 30px;
+            background: #e7f3ff;
+            border-bottom: 2px solid #b8daff;
+            color: #004085;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85em;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: rgba(255,255,255,0.1); }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.85em;
+        }
+        tbody tr:hover { background: #f0f4ff; }
+        tbody tr:nth-child(even) { background: #f8f9fa; }
+        tbody tr:nth-child(even):hover { background: #e9ecef; }
+        .price {
+            font-weight: bold;
+            color: #28a745;
+            white-space: nowrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 600;
+            color: white;
+        }
+        .badge-camion { background: #dc3545; }
+        .badge-automovil { background: #007bff; }
+        .badge-camioneta { background: #17a2b8; }
+        .badge-lujo { background: #ffc107; color: #333; }
+        .badge-otro { background: #6c757d; }
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 1.2em;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        .hidden { display: none; }
+        .log-box {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 15px;
+            margin: 20px 30px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-error { color: #ff6b6b; }
+        .log-success { color: #51cf66; }
+        .log-info { color: #74c0fc; }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.5em; }
+            .stats { flex-direction: column; }
+            .filter-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Catálogo SHCP 2026</h1>
+            <p>Precios Estimados de Vehículos Usados - Resolución Miscelánea Fiscal</p>
+            <p style="font-size: 0.9em; margin-top: 5px;">Anexo 2 - Secretaría de Hacienda y Crédito Público</p>
+        </div>
+
+        <!-- Sección de carga -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-box" id="uploadBox">
+                <h3>📁 Cargar Archivo JSON del Catálogo</h3>
+                <p>Arrastra el archivo JSON aquí o haz clic para seleccionar</p>
+                <p style="font-size: 0.85em; color: #888;">Archivo: precios estimados.json (1,304 vehículos)</p>
+                <input type="file" id="fileInput" accept=".json,.txt">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    📂 Seleccionar Archivo
+                </button>
+            </div>
+            <div class="log-box hidden" id="logBox"></div>
+        </div>
+
+        <!-- Contenido principal (oculto hasta cargar datos) -->
+        <div id="mainContent" class="hidden">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="totalVehiculos">0</div>
+                    <div class="stat-label">🚗 Vehículos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalMarcas">0</div>
+                    <div class="stat-label">🏷️ Marcas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalFracciones">0</div>
+                    <div class="stat-label">📋 Fracciones</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalConPrecio">0</div>
+                    <div class="stat-label">💰 Con Precio</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="searchInput">🔍 Buscar</label>
+                        <input type="text" id="searchInput" placeholder="Marca, modelo, descripción...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="tipoFilter">Tipo de Vehículo</label>
+                        <select id="tipoFilter">
+                            <option value="">Todos los tipos</option>
+                            <option value="camion">🚛 Camión</option>
+                            <option value="automovil">🚗 Automóvil</option>
+                            <option value="camioneta">🚙 Camioneta</option>
+                            <option value="lujo/deportivo">🏎️ Lujo/Deportivo</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="marcaFilter">Marca</label>
+                        <select id="marcaFilter">
+                            <option value="">Todas las marcas</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="fraccionFilter">Fracción Arancelaria</label>
+                        <select id="fraccionFilter">
+                            <option value="">Todas las fracciones</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="antiguedadFilter">Antigüedad (para mostrar precio)</label>
+                        <select id="antiguedadFilter">
+                            <option value="">Seleccionar antigüedad</option>
+                            <option value="1_anio">Hasta 1 año(2025)</option>
+                            <option value="2_anios">2 años(2024)</option>
+                            <option value="3_anios">3 años(2023)</option>
+                            <option value="4_anios">4 años(2022)</option>
+                            <option value="5_anios">5 años(2021)</option>
+                            <option value="6_anios">6 años(2020)</option>
+                            <option value="7_anios">7 años(2019)</option>
+                            <option value="8_anios">8 años(2018)</option>
+                            <option value="9_anios">9 años(2017)</option>
+                            <option value="10_anios">10 años o más(2016)</option>
+                            <option value="2011">Año 2011(2015)</option>
+                            <option value="2010">Año 2010(2014 y anteriores)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="precioMinFilter">💰 Precio Mínimo USD</label>
+                        <input type="number" id="precioMinFilter" placeholder="Ej: 5000" min="0">
+                    </div>
+                    <div class="filter-group">
+                        <label for="precioMaxFilter">💰 Precio Máximo USD</label>
+                        <input type="number" id="precioMaxFilter" placeholder="Ej: 50000" min="0">
+                    </div>
+                    <div class="filter-group" style="display: flex; align-items: flex-end; gap: 5px;">
+                        <button class="btn btn-warning" onclick="limpiarFiltros()">🔄 Limpiar</button>
+                        <button class="btn btn-success" onclick="exportarCSV()">📥 Exportar CSV</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-info" id="resultsInfo">
+                <span id="resultsText">Cargando...</span>
+                <span id="resultsCount"></span>
+            </div>
+
+            <div class="table-container">
+                <table id="vehiclesTable">
+                    <thead>
+                        <tr>
+                            <th onclick="ordenarPor('catalogo')">#</th>
+                            <th onclick="ordenarPor('fraccion')">Fracción</th>
+                            <th onclick="ordenarPor('tipo')">Tipo</th>
+                            <th onclick="ordenarPor('marca')">Marca</th>
+                            <th onclick="ordenarPor('modelo')">Modelo</th>
+                            <th onclick="ordenarPor('descripcion')">Descripción</th>
+                            <th onclick="ordenarPor('precio')">💰 Precio USD</th>
+                            <th>Antigüedad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let allVehicles = [];
+        let filteredVehicles = [];
+        let ordenActual = { columna: 'catalogo', ascendente: true };
+        
+        // Mapeo de columnas del JSON a nombres de antigüedad
+        const COLUMNAS_PRECIO = {
+            '_6': { nombre: '2010', key: '2010' },
+            '_7': { nombre: '2011', key: '2011' },
+            '_8': { nombre: '10 AÑOS O MÁS', key: '10_anios' },
+            '_9': { nombre: '9 AÑOS', key: '9_anios' },
+            '_10': { nombre: '8 AÑOS', key: '8_anios' },
+            '_11': { nombre: '7 AÑOS', key: '7_anios' },
+            '_12': { nombre: '6 AÑOS', key: '6_anios' },
+            '_13': { nombre: '5 AÑOS', key: '5_anios' },
+            '_14': { nombre: '4 AÑOS', key: '4_anios' },
+            '_15': { nombre: '3 AÑOS', key: '3_anios' },
+            '_16': { nombre: '2 AÑOS', key: '2_anios' },
+            '_17': { nombre: 'HASTA 1 AÑO', key: '1_anio' }
+        };
+
+        // ============================================
+        // FUNCIONES DE LOG
+        // ============================================
+        function log(mensaje, tipo = 'info') {
+            const logBox = document.getElementById('logBox');
+            logBox.classList.remove('hidden');
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `log-${tipo}`;
+            div.textContent = `[${time}] ${mensaje}`;
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+            console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
+        }
+
+        // ============================================
+        // CARGA DE ARCHIVO
+        // ============================================
+        const uploadBox = document.getElementById('uploadBox');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadBox.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                fileInput.click();
+            }
+        });
+
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) procesarArchivo(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) procesarArchivo(file);
+        });
+
+        function procesarArchivo(file) {
+            log(`📂 Procesando archivo: ${file.name} (${(file.size/1024).toFixed(2)} KB)`, 'info');
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    log(`✅ JSON parseado correctamente. Registros totales: ${data.length}`, 'success');
+                    procesarDatos(data);
+                } catch (err) {
+                    log(`❌ Error al parsear JSON: ${err.message}`, 'error');
+                    alert('Error al leer el archivo JSON: ' + err.message);
+                }
+            };
+            reader.onerror = () => {
+                log('❌ Error al leer el archivo', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        // ============================================
+        // PROCESAMIENTO DE DATOS
+        // ============================================
+        function procesarDatos(data) {
+            const vehiculos = [];
+            let tipoActual = 'automovil';
+            let fraccionActual = '';
+            
+            for (const item of data) {
+                const catalogo = (item[''] || '').toString().trim();
+                
+                // Saltar registros vacíos o encabezados
+                if (!catalogo || !catalogo.match(/^\d+$/)) {
+                    // Detectar tipo por descripción
+                    const desc = (item['_4'] || '').toUpperCase();
+                    if (desc.includes('CAMIONETA') && !desc.includes('AUTOMOVIL')) {
+                        tipoActual = 'camioneta';
+                    } else if (desc.includes('LUJO') || desc.includes('DEPORTIVO')) {
+                        tipoActual = 'lujo/deportivo';
+                    } else if (desc.includes('AUTOMOVIL')) {
+                        tipoActual = 'automovil';
+                    } else if (desc.includes('TRACTOR') || desc.includes('CAMION')) {
+                        tipoActual = 'camion';
+                    }
+                    
+                    // Actualizar fracción actual
+                    const frac = (item['_1'] || '').trim();
+                    if (frac && frac.match(/^87\d{2}\.\d{2}\.\d{2}/)) {
+                        fraccionActual = frac;
+                    }
+                    continue;
+                }
+                
+                const fraccion = (item['_1'] || fraccionActual).trim();
+                const marca = (item['_3'] || '').trim();
+                const descripcion = (item['_4'] || '').trim();
+                const unidad = (item['_5'] || 'Pza').trim();
+                
+                if (!descripcion) continue;
+                
+                // Determinar tipo por fracción
+                let tipo = tipoActual;
+                if (fraccion.startsWith('8701')) tipo = 'camion';
+                else if (fraccion.startsWith('8704')) tipo = 'camioneta';
+                else if (fraccion.startsWith('8703')) {
+                    if (tipoActual === 'lujo/deportivo') tipo = 'lujo/deportivo';
+                    else if (tipoActual === 'camioneta') tipo = 'camioneta';
+                    else tipo = 'automovil';
+                }
+                
+                // Extraer modelo (primera palabra de descripción)
+                let modelo = descripcion.split(/[\s-]/)[0].replace(/[^A-Z0-9]/gi, '');
+                if (!modelo) modelo = 'NO ESPECIFICADO';
+                
+                // Extraer precios
+                const precios = {};
+                let tienePrecio = false;
+                
+                for (const [col, info] of Object.entries(COLUMNAS_PRECIO)) {
+                    const valor = (item[col] || '').toString().trim();
+                    if (valor && valor !== '') {
+                        const num = parseInt(valor.replace(/,/g, '').replace(/\./g, ''));
+                        if (!isNaN(num) && num > 0) {
+                            precios[`precio_${info.key}`] = num;
+                            tienePrecio = true;
+                        }
+                    }
+                }
+                
+                if (!tienePrecio) continue;
+                
+                vehiculos.push({
+                    catalogo: parseInt(catalogo),
+                    fraccion: fraccion,
+                    tipo: tipo,
+                    marca: marca,
+                    modelo: modelo,
+                    descripcion: descripcion,
+                    unidad: unidad,
+                    precios: precios
+                });
+            }
+            
+            allVehicles = vehiculos;
+            log(`✅ Procesados ${vehiculos.length} vehículos válidos`, 'success');
+            
+            // Mostrar contenido principal
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            
+            inicializarAplicacion();
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        function inicializarAplicacion() {
+            actualizarEstadisticas();
+            llenarFiltros();
+            configurarEventos();
+            filtrarYMostrar();
+        }
+
+        function actualizarEstadisticas() {
+            document.getElementById('totalVehiculos').textContent = allVehicles.length.toLocaleString();
+            
+            const marcas = new Set(allVehicles.map(v => v.marca));
+            document.getElementById('totalMarcas').textContent = marcas.size;
+            
+            const fracciones = new Set(allVehicles.map(v => v.fraccion));
+            document.getElementById('totalFracciones').textContent = fracciones.size;
+            
+            const conPrecio = allVehicles.filter(v => Object.keys(v.precios).length > 0).length;
+            document.getElementById('totalConPrecio').textContent = conPrecio.toLocaleString();
+        }
+
+        function llenarFiltros() {
+            // Marcas
+            const marcas = [...new Set(allVehicles.map(v => v.marca))].sort();
+            const marcaSelect = document.getElementById('marcaFilter');
+            marcas.forEach(marca => {
+                const option = document.createElement('option');
+                option.value = marca;
+                option.textContent = `${marca} (${allVehicles.filter(v => v.marca === marca).length})`;
+                marcaSelect.appendChild(option);
+            });
+            
+            // Fracciones
+            const fracciones = [...new Set(allVehicles.map(v => v.fraccion))].sort();
+            const fraccionSelect = document.getElementById('fraccionFilter');
+            fracciones.forEach(fraccion => {
+                const option = document.createElement('option');
+                option.value = fraccion;
+                option.textContent = fraccion;
+                fraccionSelect.appendChild(option);
+            });
+        }
+
+        function configurarEventos() {
+            document.getElementById('searchInput').addEventListener('input', filtrarYMostrar);
+            document.getElementById('tipoFilter').addEventListener('change', filtrarYMostrar);
+            document.getElementById('marcaFilter').addEventListener('change', filtrarYMostrar);
+            document.getElementById('fraccionFilter').addEventListener('change', filtrarYMostrar);
+            document.getElementById('antiguedadFilter').addEventListener('change', filtrarYMostrar);
+            document.getElementById('precioMinFilter').addEventListener('input', filtrarYMostrar);
+            document.getElementById('precioMaxFilter').addEventListener('input', filtrarYMostrar);
+        }
+
+        // ============================================
+        // FUNCIONES DE PRECIO
+        // ============================================
+        function getPrecioPorAntiguedad(vehiculo, antiguedad) {
+            if (!antiguedad) return 0;
+            const key = `precio_${antiguedad}`;
+            return vehiculo.precios[key] || 0;
+        }
+
+        function getMejorPrecio(vehiculo) {
+            const antiguedades = ['1_anio', '2_anios', '3_anios', '4_anios', '5_anios', 
+                                 '6_anios', '7_anios', '8_anios', '9_anios', '10_anios', '2011', '2010'];
+            for (let ant of antiguedades) {
+                const precio = getPrecioPorAntiguedad(vehiculo, ant);
+                if (precio > 0) return precio;
+            }
+            return 0;
+        }
+
+        function getAntiguedadDisponible(vehiculo) {
+            const antiguedades = [
+                { key: '1_anio', label: 'Hasta 1 año' },
+                { key: '2_anios', label: '2 años' },
+                { key: '3_anios', label: '3 años' },
+                { key: '4_anios', label: '4 años' },
+                { key: '5_anios', label: '5 años' },
+                { key: '6_anios', label: '6 años' },
+                { key: '7_anios', label: '7 años' },
+                { key: '8_anios', label: '8 años' },
+                { key: '9_anios', label: '9 años' },
+                { key: '10_anios', label: '10+ años' },
+                { key: '2011', label: '2011' },
+                { key: '2010', label: '2010' }
+            ];
+            for (let ant of antiguedades) {
+                const precio = getPrecioPorAntiguedad(vehiculo, ant.key);
+                if (precio > 0) return ant.label;
+            }
+            return 'N/A';
+        }
+
+        function formatAntiguedad(antiguedad) {
+            const map = {
+                '1_anio': 'Hasta 1 año',
+                '2_anios': '2 años',
+                '3_anios': '3 años',
+                '4_anios': '4 años',
+                '5_anios': '5 años',
+                '6_anios': '6 años',
+                '7_anios': '7 años',
+                '8_anios': '8 años',
+                '9_anios': '9 años',
+                '10_anios': '10+ años',
+                '2011': '2011',
+                '2010': '2010'
+            };
+            return map[antiguedad] || antiguedad;
+        }
+
+        // ============================================
+        // FILTRADO Y VISUALIZACIÓN
+        // ============================================
+        function filtrarYMostrar() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const tipoFilter = document.getElementById('tipoFilter').value;
+            const marcaFilter = document.getElementById('marcaFilter').value;
+            const fraccionFilter = document.getElementById('fraccionFilter').value;
+            const antiguedadFilter = document.getElementById('antiguedadFilter').value;
+            const precioMin = parseFloat(document.getElementById('precioMinFilter').value) || 0;
+            const precioMax = parseFloat(document.getElementById('precioMaxFilter').value) || Infinity;
+            
+            filteredVehicles = allVehicles.filter(veh => {
+                // Búsqueda de texto
+                const matchSearch = !searchTerm || 
+                    veh.marca.toLowerCase().includes(searchTerm) ||
+                    veh.modelo.toLowerCase().includes(searchTerm) ||
+                    veh.descripcion.toLowerCase().includes(searchTerm) ||
+                    veh.fraccion.includes(searchTerm) ||
+                    veh.catalogo.toString().includes(searchTerm);
+                
+                const matchTipo = !tipoFilter || veh.tipo === tipoFilter;
+                const matchMarca = !marcaFilter || veh.marca === marcaFilter;
+                const matchFraccion = !fraccionFilter || veh.fraccion === fraccionFilter;
+                
+                // Filtro por antigüedad
+                let matchAntiguedad = true;
+                if (antiguedadFilter) {
+                    const precio = getPrecioPorAntiguedad(veh, antiguedadFilter);
+                    matchAntiguedad = precio > 0;
+                }
+                
+                // Filtro por rango de precios
+                let matchPrecio = true;
+                if (precioMin > 0 || precioMax < Infinity) {
+                    const precio = antiguedadFilter ? 
+                        getPrecioPorAntiguedad(veh, antiguedadFilter) : 
+                        getMejorPrecio(veh);
+                    matchPrecio = precio >= precioMin && precio <= precioMax;
+                }
+                
+                return matchSearch && matchTipo && matchMarca && matchFraccion && matchAntiguedad && matchPrecio;
+            });
+            
+            // Ordenar
+            ordenarVehiculos();
+            
+            mostrarVehiculos();
+            actualizarInfoResultados();
+        }
+
+        function ordenarPor(columna) {
+            if (ordenActual.columna === columna) {
+                ordenActual.ascendente = !ordenActual.ascendente;
+            } else {
+                ordenActual.columna = columna;
+                ordenActual.ascendente = true;
+            }
+            ordenarVehiculos();
+            mostrarVehiculos();
+        }
+
+        function ordenarVehiculos() {
+            const col = ordenActual.columna;
+            const asc = ordenActual.ascendente;
+            
+            filteredVehicles.sort((a, b) => {
+                let valA, valB;
+                
+                if (col === 'precio') {
+                    const antiguedad = document.getElementById('antiguedadFilter').value;
+                    valA = antiguedad ? getPrecioPorAntiguedad(a, antiguedad) : getMejorPrecio(a);
+                    valB = antiguedad ? getPrecioPorAntiguedad(b, antiguedad) : getMejorPrecio(b);
+                } else {
+                    valA = a[col];
+                    valB = b[col];
+                }
+                
+                if (typeof valA === 'string') {
+                    return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+                return asc ? valA - valB : valB - valA;
+            });
+        }
+
+        function mostrarVehiculos() {
+            const tableBody = document.getElementById('tableBody');
+            const antiguedadFilter = document.getElementById('antiguedadFilter').value;
+            
+            if (filteredVehicles.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="no-results">❌ No se encontraron vehículos con los filtros seleccionados</td></tr>';
+                return;
+            }
+            
+            // Limitar a primeros 500 para mejor rendimiento
+            const vehiclesToShow = filteredVehicles.slice(0, 500);
+            
+            let html = '';
+            vehiclesToShow.forEach(veh => {
+                const precio = antiguedadFilter ? 
+                    getPrecioPorAntiguedad(veh, antiguedadFilter) : 
+                    getMejorPrecio(veh);
+                
+                const antiguedadTexto = antiguedadFilter ? 
+                    formatAntiguedad(antiguedadFilter) : 
+                    getAntiguedadDisponible(veh);
+                
+                const badgeClass = {
+                    'camion': 'badge-camion',
+                    'automovil': 'badge-automovil',
+                    'camioneta': 'badge-camioneta',
+                    'lujo/deportivo': 'badge-lujo'
+                }[veh.tipo] || 'badge-otro';
+                
+                html += `
+                    <tr>
+                        <td><strong>${veh.catalogo}</strong></td>
+                        <td><code>${veh.fraccion}</code></td>
+                        <td><span class="badge ${badgeClass}">${veh.tipo}</span></td>
+                        <td><strong>${veh.marca}</strong></td>
+                        <td>${veh.modelo}</td>
+                        <td title="${veh.descripcion}">${veh.descripcion.substring(0, 60)}${veh.descripcion.length > 60 ? '...' : ''}</td>
+                        <td class="price">${precio > 0 ? '$' + precio.toLocaleString('en-US') : 'N/A'}</td>
+                        <td>${antiguedadTexto}</td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        function actualizarInfoResultados() {
+            const total = filteredVehicles.length;
+            const text = document.getElementById('resultsText');
+            const count = document.getElementById('resultsCount');
+            
+            if (total === allVehicles.length) {
+                text.textContent = `✅ Mostrando todos los ${total.toLocaleString()} vehículos`;
+            } else {
+                text.textContent = `🔍 Mostrando ${total.toLocaleString()} de ${allVehicles.length.toLocaleString()} vehículos`;
+            }
+            
+            if (total > 500) {
+                count.textContent = `(Mostrando primeros 500 - usa filtros para refinar)`;
+            } else {
+                count.textContent = '';
+            }
+        }
+
+        // ============================================
+        // FUNCIONES AUXILIARES
+        // ============================================
+        function limpiarFiltros() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('tipoFilter').value = '';
+            document.getElementById('marcaFilter').value = '';
+            document.getElementById('fraccionFilter').value = '';
+            document.getElementById('antiguedadFilter').value = '';
+            document.getElementById('precioMinFilter').value = '';
+            document.getElementById('precioMaxFilter').value = '';
+            filtrarYMostrar();
+            log('🔄 Filtros limpiados', 'info');
+        }
+
+        function exportarCSV() {
+            if (filteredVehicles.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+            
+            const antiguedadFilter = document.getElementById('antiguedadFilter').value;
+            
+            let csv = 'Catalogo,Fraccion,Tipo,Marca,Modelo,Descripcion,Precio_USD,Antiguedad\n';
+            
+            filteredVehicles.forEach(veh => {
+                const precio = antiguedadFilter ? 
+                    getPrecioPorAntiguedad(veh, antiguedadFilter) : 
+                    getMejorPrecio(veh);
+                const antiguedad = antiguedadFilter ? 
+                    formatAntiguedad(antiguedadFilter) : 
+                    getAntiguedadDisponible(veh);
+                
+                const desc = veh.descripcion.replace(/"/g, '""');
+                csv += `${veh.catalogo},"${veh.fraccion}","${veh.tipo}","${veh.marca}","${veh.modelo}","${desc}",${precio},"${antiguedad}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `catalogo_shcp_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            log(`📥 Exportados ${filteredVehicles.length} registros a CSV`, 'success');
+        }
+
+        // ============================================
+        // CARGA AUTOMÁTICA SI HAY ARCHIVO PREDEFINIDO
+        // ============================================
+        // Si quieres cargar un archivo por defecto, descomenta esto:
+         fetch('precios estimados.json')
+             .then(r => r.json())
+             .then(data => procesarDatos(data))
+             .catch(err => log('Error al cargar archivo por defecto: ' + err.message, 'error'));
+    </script>
+</body>
+</html>
